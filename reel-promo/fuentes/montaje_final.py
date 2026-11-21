@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 
 S, OUT, LOGO = sys.argv[1], sys.argv[2], sys.argv[3]
 P = S + '/photos/'; G = S + '/gen/'; R = S + '/restored/'
-W, H, FPS, DUR = 1080, 1920, 30, 35.0
+W, H, FPS, DUR = 1080, 1920, 30, 50 * 60 / 105
 CREAM = (246, 241, 230); GOLD = (226, 179, 60)
 INTER = S + '/fonts/Inter.ttf'; ANTON = S + '/fonts/Anton.ttf'
 
@@ -30,9 +30,11 @@ def crop(im, cx, cy, zoom, dx=0.0, dy=0.0, rot=0.0):
     ch = ih / zoom; cw = ch * W / H
     if cw > iw / zoom: cw = iw / zoom; ch = cw * H / W
     x0 = min(max(cx * iw - cw / 2 + dx * cw, 0), iw - cw); y0 = min(max(cy * ih - ch / 2 + dy * ch, 0), ih - ch)
-    out = im.resize((W, H), Image.BICUBIC, box=(x0, y0, x0 + cw, y0 + ch))
-    if rot: out = out.rotate(rot, Image.BICUBIC, expand=False).crop((0, 0, W, H))
-    return out
+    OW, OH = int(W * 1.04), int(H * 1.04)
+    out = im.resize((OW, OH), Image.BICUBIC, box=(x0, y0, x0 + cw, y0 + ch))
+    if rot: out = out.rotate(rot, Image.BICUBIC, expand=False)
+    l, t = (OW - W) // 2, (OH - H) // 2
+    return out.crop((l, t, l + W, t + H))
 
 # temblor de mano suave y reproducible
 rng = np.random.default_rng(7)
@@ -40,84 +42,107 @@ def smooth_noise(n, k):
     x = rng.normal(0, 1, n + 2 * k); w = np.hanning(2 * k + 1); w /= w.sum()
     return np.convolve(x, w, 'valid')[:n]
 N = int(DUR * FPS)
-SX, SY, SR = smooth_noise(N, 18) * 0.010, smooth_noise(N, 18) * 0.010, smooth_noise(N, 25) * 0.6
+SX, SY, SR = smooth_noise(N, 26) * 0.006, smooth_noise(N, 26) * 0.006, smooth_noise(N, 30) * 0.35
 
 def ease(t): t = min(max(t, 0), 1); return t * t * (3 - 2 * t)
 
-F_CAP = font(INTER, 58, 700); F_SUB = font(INTER, 36, 500); F_TAG = font(INTER, 24, 500)
-def caption(img, text, sub=None, alpha=1.0):
+F_CAP = font(INTER, 60, 700); F_SUB = font(INTER, 40, 500); F_TAG = font(INTER, 30, 600)
+def caption(img, text, sub=None, alpha=1.0, y=1310):
     layer = Image.new('RGBA', img.size, (0, 0, 0, 0)); d = ImageDraw.Draw(layer)
-    y = 1360
     tw = d.textlength(text, font=F_CAP); x = (W - tw) / 2
     d.text((x, y), text, font=F_CAP, fill=(255, 255, 255, int(255 * alpha)))
     if sub:
         sw = d.textlength(sub, font=F_SUB); d.text(((W - sw) / 2, y + 80), sub, font=F_SUB, fill=(*CREAM, int(235 * alpha)))
     bw = max(tw, d.textlength(sub, font=F_SUB) if sub else 0) + 64
     pill = Image.new('RGBA', img.size, (0, 0, 0, 0)); pd = ImageDraw.Draw(pill)
-    pd.rounded_rectangle(((W - bw) / 2, y - 14, (W + bw) / 2, y + (140 if sub else 86)), 26, fill=(10, 9, 8, int(150 * alpha)))
+    pd.rounded_rectangle(((W - bw) / 2, y - 14, (W + bw) / 2, y + (140 if sub else 86)), 26, fill=(30, 26, 22, int(160 * alpha)))
     img.paste(pill, (0, 0), pill)
     sh = layer.split()[3].filter(ImageFilter.GaussianBlur(5)).point(lambda p: int(p * 0.6))
     img.paste((0, 0, 0), (2, 3), sh)
     img.paste(layer, (0, 0), layer)
 
-def small_tag(img, text):
+def small_tag(img, text, y=262):
     d = ImageDraw.Draw(img, 'RGBA'); tw = d.textlength(text, font=F_TAG)
-    d.rounded_rectangle((W - tw - 90, 300, W - 60, 342), 21, fill=(0, 0, 0, 110))
-    d.text((W - tw - 75, 307), text, font=F_TAG, fill=(255, 255, 255, 220))
+    d.rounded_rectangle((900 - tw - 36, y, 900, y + 52), 26, fill=(30, 26, 22, 150))
+    d.text((900 - tw - 18, y + 7), text, font=F_TAG, fill=(255, 255, 255, 235))
 
 # ---------- material ----------
 scoopy = photo('68c868d9c3e9643fd413ca0f0232a392'); escudo = photo('94a6e97d5c8f4b96940933b32e4e7690')
-mt_tank = photo('69c3ef9505da637b71b6e910cbb3d7bb'); mt_lift = photo('d2be5fb28b4f7c465cc707b65b7378ab')
-endu = photo('fefa418530536a7638b7a25e2e4a8f3f')
-c_before = Image.open(R + 'cota_antes.jpg').convert('RGB'); c_after = Image.open(R + 'cota_despues.jpg').convert('RGB')
-g_room, g_bench, g_draw, g_car, g_light = gen('k6_9'), gen('k4_8'), gen('h1_6'), gen('h3_7'), gen('k6_10')
+mt_tank = photo('69c3ef9505da637b71b6e910cbb3d7bb'); garage = photo('d2be5fb28b4f7c465cc707b65b7378ab')
+endu = photo('fefa418530536a7638b7a25e2e4a8f3f'); fiat = photo('2f4234cc38b8a21d404d5f08a6ea597c')
+ride = photo('31114f831e31734fb3782cf928c2eff4')
+c_before = Image.open(R + 'cota_antes.jpg').convert('RGB'); c_after = Image.open(R + 'cota_despues_v2.jpg').convert('RGB')
 logo = Image.open(LOGO).convert('RGB')
-lmask = Image.new('L', logo.size, 0); ImageDraw.Draw(lmask).ellipse((14, 30, logo.width - 14, logo.height - 30), fill=255)
-# encuadre del depósito de la moto de trial (mismo recorte en antes y después)
-TANK = dict(cx=0.585, cy=0.33, zoom=3.3)
+# máscara del logo a partir del propio disco (sin halo blanco)
+la = np.asarray(logo).astype(int); nonwhite = (la.min(axis=2) < 225)
+ys, xs = np.nonzero(nonwhite); cx0, cy0 = (xs.min() + xs.max()) / 2, (ys.min() + ys.max()) / 2
+rr = min(xs.max() - xs.min(), ys.max() - ys.min()) / 2 - 3
+lmask = Image.new('L', logo.size, 0); ImageDraw.Draw(lmask).ellipse((cx0 - rr, cy0 - rr, cx0 + rr, cy0 + rr), fill=255)
+lmask = lmask.filter(ImageFilter.GaussianBlur(1.2))
+logo_c = logo.crop((int(cx0 - rr), int(cy0 - rr), int(cx0 + rr), int(cy0 + rr))); lmask_c = lmask.crop((int(cx0 - rr), int(cy0 - rr), int(cx0 + rr), int(cy0 + rr)))
 
-# mapa de pulsos: 105 BPM, la música entra en 1,4 s sobre un pulso
+BADGE = dict(cx=0.585, cy=0.33, zoom=4.0)     # emblema del depósito
+TANKW = dict(cx=0.572, cy=0.39)                # depósito entero
+
+# mapa de pulsos: 105 BPM; la música arranca en el fotograma 0 con un pulso
 BEAT = 60 / 105
-def B(k): return 1.4 + k * BEAT
-C = dict(opening=B(3), bench=B(7), scoopy=B(10), escudo=B(16), mtank=B(19), mlift=B(23), endu=B(29), cota=B(38), cota2=B(41), draw=B(46), car=B(49), close=B(53), logo=B(54))
-def shot(t, i):
-    j = lambda s: dict(dx=SX[i] * s, dy=SY[i] * s, rot=SR[i] * s)
-    if t < 1.4:   return crop(c_before, **TANK, **j(0.6))
-    if t < C['opening']:
-        im = crop(c_after, **TANK, **j(0.6)); small_tag(im, 'Recreación digital'); return im
-    if t < C['bench']:   u = ease((t - C['opening']) / (C['bench'] - C['opening'])); return crop(g_room, 0.5, 0.55, 1.0 + 0.18 * u, **j(1))
-    if t < C['scoopy']:   u = ease((t - C['bench']) / (C['scoopy'] - C['bench'])); return crop(g_bench, 0.42 + 0.1 * u, 0.5, 1.15, **j(1))
-    if t < C['escudo']:
-        u = ease((t - C['scoopy']) / (C['escudo'] - C['scoopy'])); im = crop(scoopy, 0.36 + 0.24 * u, 0.6, 1.2, **j(1))
-        caption(im, 'Honda Scoopy 75', 'Dos unidades', min((t - C['scoopy'] - 0.2) / 0.3, 1) if t > C['scoopy'] + 0.2 else 0); return im
-    if t < C['mtank']:
-        u = ease((t - C['escudo']) / (C['mtank'] - C['escudo'])); im = crop(escudo, 0.5, 0.45, 1.1 + 0.1 * u, **j(1.4)); caption(im, 'Honda Scoopy 75'); return im
-    if t < C['mlift']:
-        u = ease((t - C['mtank']) / (C['mlift'] - C['mtank'])); im = crop(mt_tank, 0.55, 0.34, 1.9 - 0.3 * u, **j(1)); caption(im, 'Montesa', alpha=min((t - C['mtank'] - 0.2) / 0.3, 1) if t > C['mtank'] + 0.2 else 0); return im
-    if t < C['endu']:
-        u = ease((t - C['mlift']) / (C['endu'] - C['mlift'])); im = crop(mt_lift, 0.42, 0.55, 1.12 - 0.1 * u, **j(1)); caption(im, 'Montesa'); return im
-    if t < C['cota']:
-        u = ease((t - C['endu']) / (C['cota'] - C['endu'])); im = crop(endu, 0.56 - 0.1 * u, 0.42, 1.35 - 0.15 * u, **j(1))
-        caption(im, 'Montesa', alpha=min((t - C['endu'] - 0.2) / 0.3, 1) if t > C['endu'] + 0.2 else 0); return im
-    if t < C['cota2']:
-        im = crop(c_before, 0.6, 0.5, 1.0 + 0.05 * ease((t - C['cota']) / 1.7), **j(0.5)); caption(im, 'Montesa', 'Así llegó'); return im
-    if t < C['draw']:
-        u = ease((t - C['cota2']) / (C['draw'] - C['cota2'])); im = crop(c_after, 0.585, 0.33, 3.3 - 0.3 * u, **j(0.5)); caption(im, 'Montesa', 'Así quedó'); small_tag(im, 'Recreación digital'); return im
-        if t < C['close']:  u = ease((t - C['draw']) / (C['close'] - C['draw'])); return crop(g_car, 0.5 - 0.06 * u, 0.5, 1.1, **j(1))
-    # cierre
-    u = ease((t - C['close']) / (DUR - C['close'])); im = crop(g_light, 0.5, 0.5, 1.12 - 0.08 * u, **j(0.7))
-    if t >= C['logo']:
-        a = min((t - C['logo']) / 0.5, 1)
-        d = ImageDraw.Draw(im, 'RGBA'); d.rectangle((0, 0, W, H), fill=(14, 12, 10, int(175 * a)))
-        L = logo.resize((440, int(440 * logo.height / logo.width)))
-        im.paste(L, ((W - L.width) // 2, 520), lmask.resize(L.size).point(lambda p: int(p * a)))
-        d = ImageDraw.Draw(im, 'RGBA')
-        f = font(ANTON, 98); tx = 'SANTO PISTÓN GARAGE'
-        d.text(((W - d.textlength(tx, font=f)) / 2, 1030), tx, font=f, fill=(*CREAM, int(255 * a)))
-        f = font(INTER, 46, 600)
-        for k, tx in enumerate(['¿Tienes una clásica para restaurar?', 'Escríbenos.']):
-            d.text(((W - d.textlength(tx, font=f)) / 2, 1185 + k * 66), tx, font=f, fill=(*(GOLD if k else CREAM), int(255 * a)))
+def B(k): return k * BEAT
+SHOTS = [  # (pulso de entrada, id)
+    (0, 'before'), (2, 'after'), (4, 'garage'), (8, 'scoopy'), (15, 'escudo'), (17, 'mtank'), (20, 'mlift'),
+    (24, 'enduA'), (27, 'enduB'), (30, 'llego'), (33, 'quedo'), (36, 'fiat'), (40, 'ride'), (44, 'end')]
+STARTS = [B(k) for k, _ in SHOTS] + [DUR]
+def which(t):
+    for n in range(len(SHOTS)):
+        if t < STARTS[n + 1]: return n
+    return len(SHOTS) - 1
+def fadein(t, t0): return min(max((t - t0 - 0.1) / 0.25, 0), 1)
+
+CREAMBG = (243, 238, 228); INK = (34, 29, 25)
+def end_card(t, t0):
+    im = Image.new('RGB', (W, H), CREAMBG)
+    u = t - t0
+    s = 1.0 if u > 0.35 else 0.9 + 0.1 * (1 - math.exp(-u / 0.06)) * (1 + 0.04 * math.sin(u * 30) * math.exp(-u / 0.12))
+    size = int(520 * s * (1 + 0.012 * u))
+    L = logo_c.resize((size, size), Image.LANCZOS); M = lmask_c.resize((size, size), Image.LANCZOS)
+    im.paste(L, ((W - size) // 2, 560 - (size - 520) // 2), M)
+    d = ImageDraw.Draw(im, 'RGBA')
+    f = font(ANTON, 92); tx = 'SANTO PISTÓN GARAGE'
+    a = min(max((u - BEAT * 0.5) / 0.2, 0), 1)
+    d.text(((W - d.textlength(tx, font=f)) / 2, 1130 + 20 * (1 - a)), tx, font=f, fill=(*INK, int(255 * a)))
+    f = font(INTER, 46, 600)
+    for k, tx in enumerate(['¿Tienes una clásica para restaurar?', 'Escríbenos.']):
+        a = min(max((u - BEAT * (1.5 + k)) / 0.2, 0), 1)
+        d.text(((W - d.textlength(tx, font=f)) / 2, 1265 + k * 66 + 14 * (1 - a)), tx, font=f, fill=(*((184, 53, 42) if k else INK), int(255 * a)))
     return im
+
+def shot(t, i):
+    n = which(t); sid = SHOTS[n][1]; t0, t1 = STARTS[n], STARTS[n + 1]
+    u = (t - t0) / (t1 - t0); e = ease(u)
+    j = dict(dx=SX[i], dy=SY[i], rot=SR[i])
+    if sid == 'before': return crop(c_before, BADGE['cx'], BADGE['cy'], BADGE['zoom'] - 0.15 * u, **j)
+    if sid == 'after':
+        im = crop(c_after, BADGE['cx'], BADGE['cy'], BADGE['zoom'] - 0.15 * (1 + u), **j); small_tag(im, 'Recreación digital'); return im
+    if sid == 'garage': return crop(garage, 0.30 + 0.25 * e, 0.42, 1.25 - 0.08 * u, **j)
+    if sid == 'scoopy':
+        im = crop(scoopy, 0.36 + 0.24 * e, 0.6, 1.22 - 0.04 * u, **j); caption(im, 'Honda Scoopy 75', 'Dos unidades', fadein(t, t0)); return im
+    if sid == 'escudo':
+        im = crop(escudo, 0.5, 0.42, 1.1 + 0.12 * u, **j); caption(im, 'Honda Scoopy 75'); return im
+    if sid == 'mtank':
+        im = crop(mt_tank, 0.55, 0.375, 1.9 - 0.3 * e, **j); caption(im, 'Montesa', alpha=fadein(t, t0)); return im
+    if sid == 'mlift':
+        im = crop(garage, 0.45, 0.55, 1.15 - 0.1 * e, **j); caption(im, 'Montesa'); return im
+    if sid == 'enduA':
+        im = crop(endu, 0.55, 0.40, 1.6 - 0.2 * e, **j); caption(im, 'Montesa', alpha=fadein(t, t0)); return im
+    if sid == 'enduB':
+        im = crop(endu, 0.46, 0.36, 1.15 + 0.06 * u, **j); caption(im, 'Montesa'); return im
+    if sid == 'llego':
+        im = crop(c_before, 0.6, 0.5, 1.0 + 0.06 * u, **j); caption(im, 'Montesa', 'Así llegó', fadein(t, t0)); return im
+    if sid == 'quedo':
+        im = crop(c_after, 0.572, 0.32, 3.0 - 0.1 * e, **j); caption(im, 'Montesa', 'Así quedó', y=380); small_tag(im, 'Recreación digital', y=560); return im
+    if sid == 'fiat':
+        im = crop(fiat, 0.45 + 0.1 * e, 0.5, 1.12 - 0.06 * u, **j); caption(im, 'Fiat 126', alpha=fadein(t, t0)); return im
+    if sid == 'ride': return crop(ride, 0.55, 0.55, 1.15 - 0.1 * e, **j)
+    return end_card(t, t0)
 
 grain = [Image.fromarray(np.clip(rng.normal(128, 9, (H // 2, W // 2)), 0, 255).astype('uint8')).resize((W, H)) for _ in range(6)]
 def finish(im, i):
@@ -142,7 +167,7 @@ def ratchet():
     for k in range(9):
         c = click() * 0.6; s = int(k * 0.05 * SR_A); out[s:s + len(c)] += c
     return out
-add(1.4, click(), 0.9); add(C['scoopy'], drawer(), 0.35); add(C['mtank'], ratchet(), 0.25); add(C['cota2'], click(), 0.4); add(C['draw'], drawer(), 0.25)
+add(B(2) - 0.004, click(), 0.9); add(B(8), drawer(), 0.3); add(B(17), ratchet(), 0.22); add(B(33), click(), 0.45); add(B(44), drawer(), 0.25)
 amb = np.convolve(tone_noise(len(fx)), np.ones(400) / 400, 'same') * 0.05      # aire del local
 fx += amb
 import wave
@@ -153,13 +178,13 @@ with wave.open(S + '/fx.wav', 'w') as w:
 MUSIC = S + '/music/Funk_Game_Loop.mp3'
 out = OUT + '/santo_piston_reel_1080x1920.mp4'
 # música: entra en 1,4 s (tras el clic), fundido final de 2 s, por debajo de los efectos
-afilter = ('[1:a]atrim=0.22:33.82,asetpts=PTS-STARTPTS,adelay=1400|1400,volume=0.85,afade=t=in:st=1.4:d=0.25,afade=t=out:st=33:d=2[m];'
+afilter = ('[1:a]atrim=0.22,asetpts=PTS-STARTPTS,volume=0.85,afade=t=in:st=0:d=0.05,afade=t=out:st=%.3f:d=1.6[m];' % (DUR - 1.6) + ''
            '[2:a]volume=1.0[f];[m][f]amix=inputs=2:normalize=0,alimiter=limit=0.95,loudnorm=I=-14:TP=-1.5:LRA=11[a]')
 ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
                        '-i', MUSIC, '-i', S + '/fx.wav', '-filter_complex', afilter, '-map', '0:v', '-map', '[a]',
                        '-c:v', 'libx264', '-profile:v', 'high', '-pix_fmt', 'yuv420p', '-crf', '18', '-preset', 'slow',
                        '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-t', str(DUR), '-movflags', '+faststart', out], stdin=subprocess.PIPE)
-checks = {int(t * FPS) for t in (0.7, 2.2, 4, 6, 9, 11.3, 13, 16, 20, 24, 26.5, 28.8, 30.7, 34)}
+checks = {int((STARTS[n] + STARTS[n + 1]) / 2 * FPS) for n in range(len(SHOTS))} | {int((DUR - 0.2) * FPS)}
 for i in range(N):
     fr = finish(shot(i / FPS, i), i)
     ff.stdin.write(fr.tobytes())
@@ -167,11 +192,11 @@ for i in range(N):
 ff.stdin.close(); ff.wait()
 
 # portada
-cov = crop(endu, 0.42, 0.42, 1.35); d = ImageDraw.Draw(cov, 'RGBA'); d.rectangle((0, 0, W, H), fill=(14, 12, 10, 120))
-L = logo.resize((560, int(560 * logo.height / logo.width))); cov.paste(L, (260, 420), lmask.resize(L.size))
-d = ImageDraw.Draw(cov); f = font(ANTON, 112); tx = 'SANTO PISTÓN GARAGE'
+cov = crop(endu, 0.42, 0.42, 1.35); d = ImageDraw.Draw(cov, 'RGBA'); d.rectangle((0, 0, W, H), fill=(14, 12, 10, 90))
+L = logo_c.resize((520, 520), Image.LANCZOS); cov.paste(L, (280, 440), lmask_c.resize((520, 520), Image.LANCZOS))
+d = ImageDraw.Draw(cov); f = font(ANTON, 92); tx = 'SANTO PISTÓN GARAGE'
 d.text(((W - d.textlength(tx, font=f)) / 2, 1050), tx, font=f, fill=CREAM)
-f = font(INTER, 44, 600); tx = 'Restauración de motos clásicas · Maresme'
+f = font(INTER, 40, 600); tx = 'Restauración de motos clásicas · Maresme'
 d.text(((W - d.textlength(tx, font=f)) / 2, 1200), tx, font=f, fill=GOLD)
 cov.save(OUT + '/portada_santo_piston.jpg', quality=93)
 print('ok')
