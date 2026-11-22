@@ -1,6 +1,37 @@
 # Reel promocional · Santo Pistón Garage
 
-## Versión actual: recorrido por el garaje (tipo vídeo de inmobiliaria)
+## Versión principal: recorrido retro por el garaje
+
+**Entregables**
+- `santo_piston_garaje_retro_1080x1920.mp4`: 30,3 s, 1080 × 1920, 30 fps, −14 LUFS
+- `portada_garaje_retro.jpg`
+
+Inspirada en los vídeos de referencia (taller de ladrillo visto con alfombras persas y suelo oscuro; pared de coleccionista llena de chapas y carteles):
+- **Arquitectura:** ladrillo visto, vigas de madera, tubos fluorescentes, lámparas colgantes verdes y hormigón teñido oscuro.
+- **Ambientación:**
+  - Alfombra persa bajo cada moto.
+  - Surtidor antiguo y pila de neumáticos.
+  - Carteles esmaltados con óxido. Son marcas inventadas: Aceites Pistón Santo, Bujías Rayo, Gasolina Costa Maresme, Neumáticos La Rueda de Oro y Taller Motos Clásicas.
+- **Pared de coleccionista:** tramo gris carbón con moldura, con estas piezas, todas de diseño propio, sin marcas reales:
+  - Cartel «Gran Premio Costa del Maresme 1971», con silueta de la Bultaco.
+  - Cartel «Trial de la Serra 1974».
+  - Portada «Moto Revista», con la Scoopy.
+  - Foto en sepia de la Enduro.
+  - Chapa «Lubricantes Rayo».
+  - Tapacubos cromado.
+- **Montaje:**
+  - Cámara con balanceo de mano.
+  - Arranca con «POV: entras en Santo Pistón Garage».
+  - Nombres de las motos abajo.
+  - Etalonaje cálido con grano y viñeta.
+  - Cierre en negro con el logotipo.
+- **Fuentes:** `recorrido-3d/fuentes/garaje_retro_blender.py`, `montaje_retro.py`, `carteles_esmaltados_y_alfombras.py` y `pared_coleccionista.py`.
+
+El garaje es una recreación 3D. Las motos son vuestras fotos recortadas y se muestran en su estado real. El crédito de la música (abajo) es obligatorio.
+
+---
+
+## Versión blanca del recorrido
 
 **Entregables**
 - `santo_piston_garaje_recorrido_1080x1920.mp4`: 30,3 s, 1080 × 1920, 30 fps, H.264 + AAC, −14 LUFS
