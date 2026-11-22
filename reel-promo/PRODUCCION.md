@@ -1,5 +1,28 @@
 # Reel promocional · Santo Pistón Garage
 
+## Versión actual: recorrido por el garaje (tipo vídeo de inmobiliaria)
+
+**Entregables**
+- `santo_piston_garaje_recorrido_1080x1920.mp4`: 30,3 s, 1080 × 1920, 30 fps, H.264 + AAC, −14 LUFS
+- `portada_garaje_recorrido.jpg`: portada 1080 × 1920
+
+**Cómo está hecho.** El garaje es una creación 3D en Blender (Cycles), todo gratis y hecho en código: nave blanca, puerta acristalada al patio, banco de roble con cajoneras verde oliva, panel de herramientas, carteles retro originales, el logotipo en la pared y una galería de fotos del proceso. Las motos son las fotos reales recortadas y colocadas en la escena como «muebles», con su sombra de contacto. Los planos se renderizan a 10 fps, se interpolan a 30 fps y se montan con cortes a 105 BPM (`recorrido-3d/fuentes/`).
+
+**Guion (30 s):** entrada con el título → zona de trabajo → detalle del banco → Honda Scoopy 75 → galería «El proceso» → Montesa (Enduro) → cuadro de las dos Scoopy → Bultaco Chispa → Montesa «Recién llegada» → plano general → cierre con el logotipo y «¿Tienes una clásica para restaurar? Escríbenos.»
+
+**Honestidad:**
+- El garaje es una recreación 3D, no un espacio real.
+- La Montesa de trial y la Enduro 75 aparecen tal como llegaron; no se presenta ninguna restauración inventada.
+- La Scoopy blanca y la Montesa de franjas solo salen en fotos enmarcadas porque no había recorte limpio.
+- El Fiat 126 se ha quitado porque el recorte quedaba plano.
+- La GasGas no aparece: es moderna, no una restauración.
+
+El crédito de la música es el mismo que el de abajo y es obligatorio.
+
+---
+
+## Versión anterior: reel estilo móvil
+
 **Entregables**
 - `santo_piston_reel_1080x1920.mp4`: vertical 9:16, 1080 × 1920, 30 fps, H.264 + AAC, 28,6 s, −14 LUFS
 - `portada_santo_piston.jpg`: portada del Reel, 1080 × 1920

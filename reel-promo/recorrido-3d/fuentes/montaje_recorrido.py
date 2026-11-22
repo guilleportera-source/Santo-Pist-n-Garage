@@ -144,10 +144,12 @@ ff.stdin.close(); ff.wait()
 # portada
 cov = Image.open(R + 'bultaco/0015.jpg').convert('RGB').resize((W, H), Image.LANCZOS)
 d = ImageDraw.Draw(cov, 'RGBA'); d.rectangle((0, 0, W, H), fill=(14, 12, 10, 70))
-L = logo_c.resize((460, 460), Image.LANCZOS); cov.paste(L, (310, 360), lm_c.resize((460, 460), Image.LANCZOS))
-d = ImageDraw.Draw(cov); f = font(ANTON, 92); tx = 'SANTO PISTÓN GARAGE'
-d.text(((W - d.textlength(tx, font=f)) / 2, 880), tx, font=f, fill=(255, 255, 255), stroke_width=2, stroke_fill=(30, 26, 22))
+L = logo_c.resize((460, 460), Image.LANCZOS); cov.paste(L, (310, 260), lm_c.resize((460, 460), Image.LANCZOS))
+g = Image.new('L', (1, 256)); g.putdata([int(min(255, max(0, (i - 60) * 1.6))) for i in range(256)])
+band = Image.new('RGB', (W, 700), (16, 13, 10)); cov.paste(band, (0, H - 700), g.resize((W, 700)))
+d = ImageDraw.Draw(cov); f = font(ANTON, 104); tx = 'SANTO PISTÓN GARAGE'
+d.text(((W - d.textlength(tx, font=f)) / 2, 1410), tx, font=f, fill=(255, 255, 255), stroke_width=2, stroke_fill=(30, 26, 22))
 f = font(INTER, 42, 600); tx = 'Visita el garaje'
-d.text(((W - d.textlength(tx, font=f)) / 2, 1000), tx, font=f, fill=GOLD, stroke_width=2, stroke_fill=(30, 26, 22))
+d.text(((W - d.textlength(tx, font=f)) / 2, 1550), tx, font=f, fill=GOLD, stroke_width=2, stroke_fill=(30, 26, 22))
 cov.save(OUT + '/portada_garaje_recorrido.jpg', quality=93)
 print('ok', round(DUR, 2))
