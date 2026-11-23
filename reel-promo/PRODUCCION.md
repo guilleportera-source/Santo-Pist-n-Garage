@@ -1,6 +1,25 @@
 # Reel promocional · Santo Pistón Garage
 
-## Versión principal: recorrido retro por el garaje
+## Versión principal: taller realista (sin motos)
+
+**Entregables**
+- `santo_piston_taller_real_1080x1920.mp4`: 30,3 s, 1080 × 1920, 30 fps, −14 LUFS
+- `portada_taller_real.jpg`
+
+Recorrido grabado como si fuera con el móvil (balanceo de mano, enfoque y grano de móvil, textos tipo Instagram) por un taller retro realista. Por ahora no aparecen las motos.
+- **Local:** ladrillo visto, vigas de madera, suelo de hormigón de taller, puerta acristalada al fondo, fluorescentes y lámparas industriales colgantes. Materiales PBR escaneados de Poly Haven.
+- **Mueble de trabajo:**
+  - Banco de madera gastada con estructura de acero pintado, balda inferior y panel perforado.
+  - Herramientas colgadas: sierra, sierra de arco, llave grifa, martillos, llave inglesa, carraca, alicates, destornilladores y juego de llaves combinadas.
+  - Sobre el banco: tornillo de banco, caja de herramientas, aceitera, sprays, taladro, metro y latas.
+  - Carro de herramientas con cajonera roja, taladro de columna, compresor, bidones y neumáticos.
+- **Chapas de época:** recreaciones tipográficas de marcas del segmento (Campsa, Champion, Amal, Motul, Ossa, Bultaco, Pirelli, Derbi, Sanglas, Montesa, Castrol y Michelin), con óxido y desconchones. No son logotipos oficiales.
+- **Fuentes:** `recorrido-3d/fuentes/realista/` (escena de Blender, montaje, chapas y descarga de recursos).
+- **Recursos 3D y texturas:** Poly Haven (polyhaven.com), licencia CC0. No requieren atribución.
+
+Las motos se añadirán más adelante. Los recortes limpios de las fotos ya están preparados.
+
+## Versión anterior: recorrido retro por el garaje
 
 **Entregables**
 - `santo_piston_garaje_retro_1080x1920.mp4`: 30,3 s, 1080 × 1920, 30 fps, −14 LUFS
