@@ -1,6 +1,31 @@
 # Reel promocional · Santo Pistón Garage
 
-## Versión principal: vídeo real (clips de stock)
+## Versión principal: nuestras restauraciones (material propio)
+
+**Entregables**
+- `santo_piston_restauraciones_1080x1920.mp4`: 32,6 s, 1080 × 1920, 30 fps, −14 LUFS
+- `portada_restauraciones.jpg`: antes y después de la Vespa
+
+Vídeo 100 % real: fotos y vídeos de Santo Pistón, sin 3D, sin IA y sin stock.
+- **Montaje (al ritmo de la música, 105 BPM):**
+  1. Gancho: Vespa Primavera 125, «Así llegó…» con el antes oxidado y «…y así salió.» con la Vespa terminada.
+  2. Honda Scoopy 75, de principio a fin:
+     - el antes y el despiece
+     - la tapa del variador con cinta y luego repintada
+     - el vídeo real de pintura (4K, con su sonido)
+     - el escape, la rueda y el acabado
+     - el vídeo de la Scoopy terminada
+  3. Montesa Cota 80, Montesa Enduro 75 L, Bultaco Chispa, Fiat 126 y Montesa Impala 2.
+  4. Cierre: Impala al atardecer y de noche («Hechas para rodar»), y el logotipo con «¿Tienes una clásica para restaurar? Escríbenos.»
+- **Aspecto de móvil:**
+  - Las fotos llevan un leve movimiento de cámara en mano y acercamientos suaves.
+  - Etalonaje cálido común, grano y viñeteado suave.
+  - Etiquetas ANTES/DESPUÉS y nombre de cada moto en tipografía retro.
+- **Privacidad:** matrículas pixeladas (Fiat 126, coches del fondo de la foto de la Vespa y la Scoopy antes de restaurar).
+- **Fuente:** `video-propio/compose_own.py`. El material original está en `material-propio/`.
+- **Pendiente:** no hay fotos ni vídeos del VW Golf Cabrio. Faltan también tomas del local en sí; con un vídeo recorriéndolo se puede abrir el reel.
+
+## Versión anterior: vídeo real (clips de stock)
 
 **Entregables**
 - `santo_piston_taller_video_real_1080x1920.mp4`: 29,7 s, 1080 × 1920, 23,976 fps, −14 LUFS
