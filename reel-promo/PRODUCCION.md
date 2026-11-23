@@ -11,6 +11,12 @@
 
 # Reel promocional · Santo Pistón Garage
 
+## Scoopy presentación, calidad iPhone (`santo_piston_scoopy_iphone_1080x1920.mp4`)
+
+Vídeo original de 480x848, muy comprimido. Mejorado sin servicios externos ni claves:
+1. `video-mejorado/sr.py`: escalado x4 con IA (Real-ESRGAN realesr-general-x4v3, en CPU) fotograma a fotograma. Quita manchas y bloques de compresión y lo lleva a 1080x1920.
+2. `video-mejorado/finish.sh`: estabilización suave, limpieza temporal ligera (sin estelas al moverse), color natural, nitidez equilibrada; audio con menos ruido, compresión suave y −14 LUFS. 64 s, H.264, 70 MB.
+
 ## Versión principal: vuestras motos en el local retro
 
 **Entregables**
