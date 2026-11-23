@@ -1,6 +1,27 @@
 # Reel promocional · Santo Pistón Garage
 
-## Versión principal: nuestras restauraciones (material propio)
+## Versión principal: vuestras motos en el local retro
+
+**Entregables**
+- `santo_piston_local_1080x1920.mp4`: 26,3 s, 1080 × 1920, 30 fps, −14 LUFS
+- `portada_local.jpg`
+
+**Estructura**
+1. Recorrido real por un garaje retro de suelo oscuro con chapas.
+   - Planos de vídeo cedidos con permiso por su autor, según el cliente (vídeo de @purecreteco).
+   - Se han borrado sus rótulos superpuestos.
+2. Vuestras motos dentro del local, con seguimiento de cámara: recortes de vuestras fotos con sombra de contacto y reflejo en el suelo brillante.
+   - Montesa Impala 2
+   - Vespa, Enduro 75 L y Fiat 126
+   - Bultaco Chispa y Montesa Cota
+3. Restauraciones reales: Vespa antes y después, proceso de la Honda Scoopy 75 y el cierre con la Impala.
+
+**Notas**
+- El vídeo de los Porsche (@rico_customs) no se usa: los coches aparecen en todos los planos y no se pueden borrar sin que se note.
+- Por respeto al autor del vídeo del local, conviene mencionarlo en el post.
+- **Fuentes:** `video-local/` (`track.py` para el seguimiento y la composición, `compose_final.py` para el montaje).
+
+## Versión anterior: nuestras restauraciones (material propio)
 
 **Entregables**
 - `santo_piston_restauraciones_1080x1920.mp4`: 32,6 s, 1080 × 1920, 30 fps, −14 LUFS
