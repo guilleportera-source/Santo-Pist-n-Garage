@@ -74,18 +74,65 @@ def sign_mat(name, base):
     nt.links.new(r.outputs['Color'], b.inputs['Height']); nt.links.new(b.outputs['Normal'], p.inputs['Normal'])
     return m
 
+def grime(m, ao_dist=0.0, stain_scale=0.0, stain_amt=0.0, base_z=0.0, dark=(0.32, 0.29, 0.26), oil_rough=None, seed=0.0, ramp=(0.58, 0.72)):
+    """Suciedad realista: oscurece rincones (AO), manchas de aceite (ruido) y salpicaduras en la base de la pared."""
+    nt = m.node_tree; p = nt.nodes['Principled BSDF']
+    if p.inputs['Base Color'].links: src = p.inputs['Base Color'].links[0].from_socket
+    else:
+        rgb = nt.nodes.new('ShaderNodeRGB'); rgb.outputs[0].default_value = p.inputs['Base Color'].default_value; src = rgb.outputs[0]
+    fac = None
+    def add(a, b):
+        mth = nt.nodes.new('ShaderNodeMath'); mth.operation = 'ADD'; mth.use_clamp = True
+        nt.links.new(a, mth.inputs[0]); nt.links.new(b, mth.inputs[1]); return mth.outputs[0]
+    if ao_dist:
+        ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.samples = 6; ao.inputs['Distance'].default_value = ao_dist
+        inv = nt.nodes.new('ShaderNodeMath'); inv.operation = 'MULTIPLY_ADD'; inv.inputs[1].default_value = -1.1; inv.inputs[2].default_value = 1.1
+        nt.links.new(ao.outputs['AO'], inv.inputs[0]); fac = inv.outputs[0]
+    stain = None
+    if stain_scale:
+        geo = nt.nodes.new('ShaderNodeNewGeometry')
+        nz = nt.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = stain_scale; nz.inputs['Detail'].default_value = 8; nz.inputs['Roughness'].default_value = 0.62
+        nz.noise_dimensions = '4D'; nz.inputs['W'].default_value = seed
+        nt.links.new(geo.outputs['Position'], nz.inputs['Vector'])
+        cr = nt.nodes.new('ShaderNodeValToRGB'); cr.color_ramp.elements[0].position = ramp[0]; cr.color_ramp.elements[1].position = ramp[1]
+        nt.links.new(nz.outputs['Fac'], cr.inputs[0])
+        sm = nt.nodes.new('ShaderNodeMath'); sm.operation = 'MULTIPLY'; sm.inputs[1].default_value = stain_amt
+        nt.links.new(cr.outputs['Color'], sm.inputs[0]); stain = sm.outputs[0]
+        fac = add(fac, stain) if fac else stain
+    if base_z:
+        geo = nt.nodes.new('ShaderNodeNewGeometry'); sx = nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(geo.outputs['Position'], sx.inputs[0])
+        mr = nt.nodes.new('ShaderNodeMapRange'); mr.inputs['From Min'].default_value = 0.0; mr.inputs['From Max'].default_value = base_z
+        mr.inputs['To Min'].default_value = 0.55; mr.inputs['To Max'].default_value = 0.0
+        nt.links.new(sx.outputs['Z'], mr.inputs['Value'])
+        nz = nt.nodes.new('ShaderNodeTexNoise'); nz.inputs['Scale'].default_value = 9; nz.inputs['Detail'].default_value = 6
+        nt.links.new(geo.outputs['Position'], nz.inputs['Vector'])
+        mu = nt.nodes.new('ShaderNodeMath'); mu.operation = 'MULTIPLY'; nt.links.new(mr.outputs[0], mu.inputs[0]); nt.links.new(nz.outputs['Fac'], mu.inputs[1])
+        mu2 = nt.nodes.new('ShaderNodeMath'); mu2.operation = 'MULTIPLY'; mu2.inputs[1].default_value = 1.6; nt.links.new(mu.outputs[0], mu2.inputs[0])
+        fac = add(fac, mu2.outputs[0]) if fac else mu2.outputs[0]
+    mx = nt.nodes.new('ShaderNodeMix'); mx.data_type = 'RGBA'; mx.blend_type = 'MULTIPLY'
+    mx.inputs['B'].default_value = (*dark, 1); nt.links.new(fac, mx.inputs['Factor']); nt.links.new(src, mx.inputs['A'])
+    nt.links.new(mx.outputs['Result'], p.inputs['Base Color'])
+    if oil_rough is not None and stain is not None:   # el aceite brilla
+        rs = p.inputs['Roughness'].links[0].from_socket
+        mr = nt.nodes.new('ShaderNodeMix'); mr.data_type = 'FLOAT'; mr.inputs['B'].default_value = oil_rough
+        nt.links.new(stain, mr.inputs['Factor']); nt.links.new(rs, mr.inputs['A']); nt.links.new(mr.outputs[0], p.inputs['Roughness'])
+    return m
+
 BRICK = pbr('ladrillo', 'factory_brick', 1.5)
 FLOOR = pbr('suelo', 'garage_floor', 1.9, nor_str=0.6)
 CEIL = pbr('techo', 'plaster_grey_04', 1.5, tint=(1.0, 0.98, 0.95))
 BEAM = pbr('viga', 'dark_wood', 1.0)
 DARKWALL = pbr('pared_gris', 'plaster_grey_04', 1.5, tint=(0.13, 0.14, 0.15))
 TOP = pbr('tablero', 'wood_table_worn', 0.55, tint=(0.82, 0.8, 0.76), rough_add=0.05)
+grime(BRICK, base_z=0.6, dark=(0.45, 0.4, 0.36))
+grime(FLOOR, ao_dist=0.6, stain_scale=1.1, stain_amt=1.0, dark=(0.2, 0.19, 0.18), oil_rough=0.2, seed=1.7, ramp=(0.52, 0.68))
+grime(TOP, stain_scale=4.0, stain_amt=0.75, dark=(0.35, 0.3, 0.26), oil_rough=0.3, seed=4.2)
 SHELFW = pbr('balda', 'wood_table_worn', 0.55, tint=(0.7, 0.66, 0.6), rough_add=0.1)
 STEEL = flat('acero_pintado', (0.06, 0.1, 0.08), 0.42)
 FRAME = flat('marco', (0.02, 0.02, 0.02), 0.5)
 GLASS = bpy.data.materials.new('vidrio'); GLASS.use_nodes = True
 _nt = GLASS.node_tree; _p = _nt.nodes['Principled BSDF']
-_p.inputs['Transmission Weight'].default_value = 1.0; _p.inputs['Roughness'].default_value = 0.02; _p.inputs['IOR'].default_value = 1.45
+_p.inputs['Transmission Weight'].default_value = 1.0; _p.inputs['Roughness'].default_value = 0.16; _p.inputs['IOR'].default_value = 1.45
 PEG = bpy.data.materials.new('perforado'); PEG.use_nodes = True
 _nt = PEG.node_tree; _p = _nt.nodes['Principled BSDF']; _p.inputs['Roughness'].default_value = 0.75
 _tc = _nt.nodes.new('ShaderNodeTexCoord'); _mp = _nt.nodes.new('ShaderNodeMapping'); _mp.inputs['Scale'].default_value = (2.0,) * 3
@@ -107,14 +154,18 @@ def plane_img(name, mat_, w, h, loc, rot):
     ob.data.materials.append(mat_); return ob
 
 # ---------------- modelos Poly Haven ----------------
-def model(name, loc, rot=(0, 0, 0), fit=None, anchor='bottom', tag=None):
+def model(name, loc, rot=(0, 0, 0), fit=None, anchor='bottom', tag=None, only=None):
     """Importa un glTF, lo agrupa en un vacío, lo recentra (base o centro) y lo escala si se pide fit=(eje|'max', metros)."""
     path = glob.glob(PH + 'models/' + name + '/*.gltf')[0]
     before = set(bpy.data.objects)
     bpy.ops.import_scene.gltf(filepath=path)
     new = [o for o in bpy.data.objects if o not in before]
-    for o in [o for o in new if o.type == 'MESH' and not o.data.materials]:   # auxiliares del rig
+    for o in [o for o in new if o.type == 'MESH' and (not o.data.materials or (only and only not in o.name))]:   # auxiliares del rig
         new.remove(o); bpy.data.objects.remove(o, do_unlink=True)
+    for im in bpy.data.images:   # texturas retocadas (sin rótulos ajenos)
+        fx = S + '/tour/tex_fix/' + os.path.basename(im.filepath)
+        if im.filepath and os.path.exists(fx) and im.filepath != fx:
+            nw = bpy.data.images.load(fx); nw.colorspace_settings.name = im.colorspace_settings.name; im.user_remap(nw)
     root = bpy.data.objects.new((tag or name) + '_root', None); sc.collection.objects.link(root)
     tops = [o for o in new if o.parent is None]
     for o in tops: o.parent = root
@@ -279,6 +330,78 @@ _nt = LOGO.node_tree; _p = _nt.nodes['Principled BSDF']; _im = _nt.nodes.new('Sh
 _nt.links.new(_im.outputs['Color'], _p.inputs['Base Color']); _nt.links.new(_im.outputs['Alpha'], _p.inputs['Alpha']); _p.inputs['Roughness'].default_value = 0.3; _p.inputs['Coat Weight'].default_value = 0.4
 ob = plane_img('rotulo', LOGO, 0.95, 0.95, (-2.5, D - 0.012, 2.15), BK); ob.modifiers.new('esp', 'SOLIDIFY').thickness = 0.01
 
+# ================= VIDA DE TALLER (más objetos, cables, puerta) =================
+model('korean_fire_extinguisher_01', (W2 - 0.17, 1.15, 0.72), (0, 0, -90), tag='extintor')
+box('soporte_ext', W2 - 0.02, 1.15, 1.1, 0.03, 0.1, 0.12, STEEL)
+model('wall_clock', (BX0 + 0.03, 1.25, 2.5), (0, 0, 90), anchor='center', tag='reloj')
+CAL = bpy.data.materials.new('calendario_m'); CAL.use_nodes = True
+_nt = CAL.node_tree; _p = _nt.nodes['Principled BSDF']; _im = _nt.nodes.new('ShaderNodeTexImage'); _im.image = bpy.data.images.load(TR + 'calendario.jpg')
+_nt.links.new(_im.outputs['Color'], _p.inputs['Base Color']); _p.inputs['Roughness'].default_value = 0.8
+cal = plane_img('calendario', CAL, 0.35, 0.5, (W2 - 0.01, 1.2, 1.75), (R(91.5), 0, R(90)))
+model('portable_welding_cart', (2.95, 4.35, 0), (0, 0, -80), tag='soldadura')
+model('garden_gloves_01', (BX0 + 0.55, 4.1, TOP_Z), (0, 0, 35), tag='guantes')
+model('propane_torch', (BX0 + 0.13, 3.22, TOP_Z), (0, 0, 0), tag='soplete')
+model('retro_multimeter', (BX0 + 0.25, 2.98, TOP_Z), (0, 0, 75), fit=('z', 0.2), tag='polimetro')
+model('plastic_bottle_gallon', (BX0 + 0.14, 2.32, 2.295), (0, 0, 90), tag='garrafa')
+model('multi_cleaner_5_litre', (BX0 + 0.14, 4.55, 2.295), (0, 0, 90), tag='bidon5')
+model('oil_tin', (BX0 + 0.14, 4.32, 2.295), (0, 0, 60), tag='lata_sup')
+model('bolt_cutters_01', (BX0 + 0.1, 1.78, 0.42), (0, -10, 90), anchor='center', tag='cizalla')
+model('crowbar_01', (BX0 + 0.08, 1.92, 0.3), (0, -12, 0), anchor='center', tag='palanca')
+model('metal_jerrycan_green', (-2.45, 8.7, 0), (0, 0, 75), tag='bidon_verde')
+model('worn_metal_rack', (2.6, -0.25, 0), (0, 0, 180), tag='estanteria')
+for k, (nm, z_) in enumerate((('cardboard_box_01', 0.02), ('multi_cleaner_5_litre', 0.02), ('plastic_bottle_gallon', 0.02))):
+    model(nm, (2.35 + k * 0.28, -0.22, z_), (0, 0, 15 * k), tag=f'est{k}')
+model('hand_truck', (1.35, -0.3, 0), (0, 0, 180), tag='carretilla')
+model('dustpan', (BX0 + 0.25, 1.4, 0), (0, 0, 70), tag='recogedor')
+# trapo de taller sobre el banco (tela arrugada)
+bpy.ops.mesh.primitive_grid_add(x_subdivisions=60, y_subdivisions=60, size=0.26, location=(BX0 + 0.62, 2.62, TOP_Z + 0.002))
+rag = bpy.context.object; rag.rotation_euler = (0, 0, R(23)); rag.scale = (1, 0.8, 1)
+tx = bpy.data.textures.new('arrugas', 'CLOUDS'); tx.noise_scale = 0.035; tx.noise_depth = 3
+dp = rag.modifiers.new('arr', 'DISPLACE'); dp.texture = tx; dp.strength = 0.03; dp.mid_level = 0.0
+sw = rag.modifiers.new('pliegue', 'SIMPLE_DEFORM'); sw.deform_method = 'BEND'; sw.angle = R(40); sw.deform_axis = 'Y'
+bpy.ops.object.shade_smooth()
+RAG = flat('trapo', (0.42, 0.38, 0.33), 0.95); grime(RAG, stain_scale=14, stain_amt=0.8, dark=(0.25, 0.22, 0.2), seed=2.0)
+rag.data.materials.append(RAG); rag.hide_render = True   # descartado: no quedaba realista
+# canalización eléctrica vista (tubo gris por la pared) y cable alargador por el suelo
+PVC = flat('tubo_pvc', (0.42, 0.42, 0.4), 0.55)
+def tube(p0, p1, r=0.011, m=PVC):
+    v = Vector(p1) - Vector(p0); c = (Vector(p0) + Vector(p1)) / 2
+    bpy.ops.mesh.primitive_cylinder_add(vertices=12, radius=r, depth=v.length, location=c)
+    o = bpy.context.object; o.rotation_euler = v.to_track_quat('Z', 'Y').to_euler(); o.data.materials.append(m); return o
+tube((BX0 + 0.02, -0.5, 2.95), (BX0 + 0.02, D, 2.95))
+tube((BX0 + 0.02, 1.2, 2.95), (BX0 + 0.02, 1.2, 1.75))
+tube((BX0 + 0.02, 4.95, 2.95), (BX0 + 0.02, 4.95, 1.2))
+box('enchufe', BX0 + 0.025, 4.95, 1.15, 0.035, 0.09, 0.12, flat('baquelita', (0.75, 0.73, 0.68), 0.4), bevel=0.008)
+tube((W2 - 0.02, -0.5, 2.95), (W2 - 0.02, D, 2.95))
+tube((W2 - 0.02, 0.6, 2.95), (W2 - 0.02, 0.6, 1.35))
+box('interruptor', W2 - 0.025, 0.6, 1.3, 0.035, 0.08, 0.1, flat('baquelita2', (0.75, 0.73, 0.68), 0.4), bevel=0.008)
+RUB = flat('goma', (0.02, 0.02, 0.02), 0.6)
+import random as _r; _r.seed(5)
+pts = [(BX0 + 0.05, 4.95, 1.12), (BX0 + 0.06, 4.95, 0.02)]
+y = 4.95
+while y < 6.55:
+    y += 0.18; pts.append((BX0 + 0.35 + _r.uniform(-0.12, 0.12), y, 0.006))
+pts.append((BX0 + 0.3, 6.65, 0.006))
+cu = bpy.data.curves.new('cable', 'CURVE'); cu.dimensions = '3D'; cu.bevel_depth = 0.0045; cu.bevel_resolution = 2
+sp = cu.splines.new('NURBS'); sp.points.add(len(pts) - 1); sp.order_u = 4; sp.use_endpoint_u = True
+for i, q in enumerate(pts): sp.points[i].co = (*q, 1)
+cb = bpy.data.objects.new('cable', cu); sc.collection.objects.link(cb); cu.materials.append(RUB)
+# cara interior de la puerta enrollable de chapa en la pared de entrada
+CHAPA = flat('chapa_puerta', (0.36, 0.37, 0.37), 0.42, 0.75); grime(CHAPA, stain_scale=3.0, stain_amt=0.7, base_z=0.5, dark=(0.45, 0.4, 0.34), seed=7.0, ramp=(0.5, 0.75))
+_tcp = CHAPA.node_tree.nodes.new('ShaderNodeTexCoord')
+_ntc = CHAPA.node_tree; _pc = _ntc.nodes['Principled BSDF']
+_wv = _ntc.nodes.new('ShaderNodeTexWave'); _wv.wave_type = 'BANDS'; _wv.bands_direction = 'Z'; _wv.wave_profile = 'SIN'; _wv.inputs['Scale'].default_value = 1.0
+_mpw = _ntc.nodes.new('ShaderNodeMapping'); _mpw.inputs['Scale'].default_value = (1, 1, 1 / 0.09 * 0.5)
+_ntc.links.new(_tcp.outputs['Object'], _mpw.inputs[0]); _ntc.links.new(_mpw.outputs[0], _wv.inputs[0])
+_bp = _ntc.nodes.new('ShaderNodeBump'); _bp.inputs['Strength'].default_value = 0.6; _bp.inputs['Distance'].default_value = 0.01
+_ntc.links.new(_wv.outputs['Fac'], _bp.inputs['Height']); _ntc.links.new(_bp.outputs['Normal'], _pc.inputs['Normal'])
+_pc.inputs['Metallic'].default_value = 0.6
+box('persiana', 0, -0.53, 1.4, 3.0, 0.02, 2.8, CHAPA)
+box('cajon_persiana', 0, -0.4, 2.98, 3.2, 0.3, 0.36, STEEL, bevel=0.01)
+for x_ in (-1.53, 1.53):
+    box(f'guia{x_}', x_, -0.5, 1.4, 0.07, 0.06, 2.8, STEEL)
+box('cerrojo', 0, -0.5, 0.25, 0.25, 0.03, 0.06, CHROME_ := flat('cerrojo_m', (0.6, 0.6, 0.6), 0.3, 1.0))
+
 # ================= LUZ =================
 world = bpy.data.worlds.new('cielo'); sc.world = world; world.use_nodes = True
 wn = world.node_tree; env = wn.nodes.new('ShaderNodeTexEnvironment'); env.image = bpy.data.images.load(PH + 'hdri/courtyard.hdr')
@@ -317,6 +440,8 @@ sc.cycles.caustics_reflective = False; sc.cycles.caustics_refractive = False; sc
 sc.view_settings.view_transform = 'AgX'; sc.view_settings.look = 'AgX - Base Contrast'
 sc.view_settings.exposure = float(os.environ.get('EXPO', 0.0))
 sc.render.resolution_y = RES_Y; sc.render.resolution_x = RES_Y * 9 // 16
+sc.render.fps = 30; sc.render.use_motion_blur = True; sc.render.motion_blur_shutter = 0.6; sc.render.motion_blur_position = 'START'
+sc.cycles.rolling_shutter_type = 'TOP'; sc.cycles.rolling_shutter_duration = 0.15
 sc.render.image_settings.file_format = 'JPEG'; sc.render.image_settings.quality = 93
 
 # ================= CÁMARA (móvil en mano) =================
@@ -357,6 +482,10 @@ elif MODE == 'anim':
     for i in range(n):
         fp = OUT + f'{name}/{i:04d}.jpg'
         if os.path.exists(fp): continue
-        setup_cam(name, i / (n - 1)); sc.render.filepath = fp; bpy.ops.render.render(write_still=True)
+        u = i / (n - 1); du = 1.0 / (30.0 * dur)
+        cam.animation_data_clear(); camd.animation_data_clear()
+        for f_, uu in ((1, u), (2, u + du)):
+            setup_cam(name, uu); cam.keyframe_insert('location', frame=f_); cam.keyframe_insert('rotation_euler', frame=f_)
+        sc.frame_set(1); sc.render.filepath = fp; bpy.ops.render.render(write_still=True)
 elif MODE == 'save':
     bpy.ops.wm.save_as_mainfile(filepath=S + '/tour/taller_real.blend')

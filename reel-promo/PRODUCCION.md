@@ -14,7 +14,20 @@ Recorrido grabado como si fuera con el móvil (balanceo de mano, enfoque y grano
   - Sobre el banco: tornillo de banco, caja de herramientas, aceitera, sprays, taladro, metro y latas.
   - Carro de herramientas con cajonera roja, taladro de columna, compresor, bidones y neumáticos.
 - **Chapas de época:** recreaciones tipográficas de marcas del segmento (Campsa, Champion, Amal, Motul, Ossa, Bultaco, Pirelli, Derbi, Sanglas, Montesa, Castrol y Michelin), con óxido y desconchones. No son logotipos oficiales.
-- **Fuentes:** `recorrido-3d/fuentes/realista/` (escena de Blender, montaje, chapas y descarga de recursos).
+- **Desgaste y vida de taller:**
+  - Manchas de aceite brillantes en el suelo, suciedad en rincones y en la base del ladrillo, y manchas en el tablero.
+  - Tubo eléctrico visto, enchufe, interruptor y cable alargador por el suelo.
+  - Extintor con tarjeta de revisiones, reloj y calendario de taller de 1979 (marca de recambios inventada).
+  - Persiana metálica en la entrada, estantería, carretilla, carro de soldadura, guantes, soplete y polímetro.
+  - Puerta del fondo con vidrio translúcido.
+- **Cámara de móvil:**
+  - Desenfoque de movimiento y efecto de obturador del sensor del móvil, renderizados en Cycles.
+  - En el montaje: temblor de mano, exposición automática que respira, brillo alrededor de los fluorescentes, aberración cromática leve, viñeteado y grano.
+- **Fuentes:** `recorrido-3d/fuentes/realista/`:
+  - escena de Blender y montaje
+  - chapas y calendario
+  - retoque de etiquetas de los modelos
+  - descarga de recursos
 - **Recursos 3D y texturas:** Poly Haven (polyhaven.com), licencia CC0. No requieren atribución.
 
 Las motos se añadirán más adelante. Los recortes limpios de las fotos ya están preparados.

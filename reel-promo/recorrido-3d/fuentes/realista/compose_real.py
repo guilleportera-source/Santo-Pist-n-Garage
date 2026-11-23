@@ -54,7 +54,10 @@ def smooth_noise(n, sigma):
 SX = smooth_noise(NF, 9) * 7 + smooth_noise(NF, 2.5) * 1.6
 SY = smooth_noise(NF, 9) * 6 + smooth_noise(NF, 2.5) * 1.4
 SR = smooth_noise(NF, 12) * 0.28 + smooth_noise(NF, 3) * 0.06
+AE = 1 + smooth_noise(NF, 40) * 0.025
 
+_yy, _xx = np.mgrid[0:H, 0:W]; _rr = (((_xx - W / 2) / (W / 2)) ** 2 + ((_yy - H / 2) / (H / 2)) ** 2) / 2
+VIG = (1 - 0.16 * _rr ** 1.5)[..., None].astype(np.float32)
 def phone(fr, fi):
     """Encuadre con temblor, nitidez y ruido de cámara de móvil."""
     im = Image.fromarray(fr)   # 1152x2048 (6,7 % de margen)
@@ -65,8 +68,19 @@ def phone(fr, fi):
     c = cx - a * W / 2 - b * H / 2; f = cy - d * W / 2 - e * H / 2
     im = im.transform((W, H), Image.AFFINE, (a, b, c, d, e, f), Image.BICUBIC)
     im = im.filter(ImageFilter.UnsharpMask(radius=1.6, percent=70, threshold=2))
+    # aberración cromática lateral leve (lente de móvil): rojo un pelo más grande, azul un pelo más pequeño
+    r_, g_, b_ = im.split()
+    def _sc(ch, k):
+        w2, h2 = int(W * k), int(H * k); c2 = ch.resize((w2, h2), Image.BICUBIC)
+        return c2.crop(((w2 - W) // 2, (h2 - H) // 2, (w2 - W) // 2 + W, (h2 - H) // 2 + H))
+    im = Image.merge('RGB', (_sc(r_, 1.0024), _sc(g_, 1.0012), b_))
     x = np.asarray(im).astype(np.float32)
-    x = 255 * ((x / 255) ** 0.97)                    # medios un poco más abiertos, como el HDR del móvil
+    # brillo difuso alrededor de los tubos y lámparas (bloom de sensor pequeño)
+    hi = np.clip(x - 215, 0, None)
+    hb = np.asarray(Image.fromarray(np.clip(hi * 4, 0, 255).astype(np.uint8)).resize((W // 4, H // 4), Image.BILINEAR).filter(ImageFilter.GaussianBlur(9)).resize((W, H), Image.BILINEAR)).astype(np.float32)
+    x = x + hb * 0.22
+    x = x * VIG * AE[fi]                             # viñeteado suave y autoexposición que respira
+    x = 255 * (np.clip(x / 255, 0, 1) ** 0.97)       # medios un poco más abiertos, como el HDR del móvil
     lum = rng.normal(0, 2.2, (H // 2, W // 2, 1)).repeat(2, 0).repeat(2, 1)
     return Image.fromarray(np.clip(x + lum, 0, 255).astype(np.uint8))
 
