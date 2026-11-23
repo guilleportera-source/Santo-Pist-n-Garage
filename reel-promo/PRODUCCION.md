@@ -1,7 +1,8 @@
 ## Prueba: vídeo del despiece de la Scoopy con el local ambientado
 
 - **Entregable:** `santo_piston_scoopy_local_retro_1080x1920.mp4`, el vídeo original completo (39,8 s, audio original) sin cortes.
-- **Chapas en la pared:** tres chapas de época (Montesa, Motul y Campsa), clavadas en la pared blanca.
+- **Pared lateral repintada:** la pared real se recolorea en verde inglés mate con un filete rojo, por encima de la altura de mesa y motos. Se conservan su luz, sus juntas y su textura, sin IA ni claves externas.
+- **Chapas en la pared:** cuatro chapas de época (Montesa, Motul, Campsa y Castrol).
   - Siguen el movimiento de la cámara.
   - Reciben la luz de la pared y tienen una pequeña sombra.
   - Quedan detrás de la persona cuando pasa por delante (máscara por fotograma).
