@@ -1,6 +1,23 @@
 # Reel promocional · Santo Pistón Garage
 
-## Versión principal: taller realista (sin motos)
+## Versión principal: vídeo real (clips de stock)
+
+**Entregables**
+- `santo_piston_taller_video_real_1080x1920.mp4`: 29,7 s, 1080 × 1920, 23,976 fps, −14 LUFS
+- `portada_taller_video_real.jpg`
+
+Montaje con **vídeo real grabado en un taller de motos**. No es Santo Pistón: son clips de stock gratuitos. Los textos no dicen que sea vuestro taller.
+- **Clips:** Mixkit, licencia *Mixkit Stock Video Free License*, que permite el uso comercial y en publicidad sin atribución.
+  - IDs: 41927, 41926, 41928, 41933, 41929, 41934, 41935, 41937, 41943, 41944 y 41939.
+  - Los clips de Mixkit con *Restricted License* no permiten uso comercial y se han descartado.
+- **Montaje:**
+  - Recorte vertical desde 4K, cortes al ritmo de la música (105 BPM).
+  - Textos: «Motos clásicas», «Mecánica de verdad», «Puesta a punto» y «Cada detalle cuenta».
+  - Cierre con el logotipo y «¿Tienes una clásica para restaurar? Escríbenos.»
+- **Fuente:** `video-real/compose_stock.py`.
+- **Aviso:** en los clips se ven marcas de terceros (BMW, SHAD, Bell). Cuando podáis grabar vuestro propio taller con el móvil, conviene sustituir estos clips por los vuestros.
+
+## Versión anterior: taller 3D realista (sin motos)
 
 **Entregables**
 - `santo_piston_taller_real_1080x1920.mp4`: 30,3 s, 1080 × 1920, 30 fps, −14 LUFS
